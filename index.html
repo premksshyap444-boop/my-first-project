@@ -2,56 +2,179 @@
 <html lang="hi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>My Portfolio</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My 3D Open World</title>
 <style>
-* {box-sizing:border-box}
-body {
-  margin:0;
-  font-family:Arial,sans-serif;
-  background:linear-gradient(135deg,#10152f,#39246b);
-  color:white;
-  text-align:center;
-  padding:30px 15px;
-}
-.card {
-  max-width:600px;
-  margin:30px auto;
-  padding:35px 20px;
-  background:#ffffff15;
-  border:1px solid #ffffff30;
-  border-radius:22px;
-}
-h1 {color:#8ee8ff;font-size:32px}
-h2 {color:#c9a8ff}
-p {line-height:1.8;color:#eeeeee}
-.tag {
-  display:inline-block;
-  padding:9px 15px;
-  margin:5px;
-  background:#ffffff20;
-  border-radius:20px;
-}
-footer {color:#bbbbbb;margin-top:30px}
+body{margin:0;overflow:hidden;font-family:Arial}
+#controls{position:fixed;bottom:20px;width:100%;
+display:flex;justify-content:space-around;align-items:center}
+button{background:#222;color:white;border:2px solid white;
+border-radius:15px;padding:17px;font-size:18px}
+#info{position:fixed;top:12px;left:12px;color:white;
+background:#222;padding:10px}
 </style>
 </head>
 <body>
-<div class="card">
-  <h1>नमस्ते! 👋</h1>
-  <h2>मेरी Personal Website</h2>
-  <p>आपका स्वागत है मेरी वेबसाइट पर।</p>
-  <h2>मेरे बारे में</h2>
-  <p>मैं Polytechnic Mechanical Engineering का विद्यार्थी हूँ।</p>
-  <h2>मेरी पढ़ाई</h2>
-  <span class="tag">Mechanical Engineering</span>
-  <span class="tag">Polytechnic</span>
-  <h2>मेरा लक्ष्य 🎯</h2>
-  <p>नई तकनीक सीखना और अपने भविष्य को बेहतर बनाना।</p>
-  <h2>मेरी Skills</h2>
-  <span class="tag">HTML</span>
-  <span class="tag">Web Design</span>
-  <span class="tag">GitHub</span>
-  <footer>© 2026 My Portfolio</footer>
+<div id="info">MY 3D CITY | पैदल</div>
+<div id="controls">
+<button id="left">◀</button>
+<button id="forward">▲</button>
+<button id="right">▶</button>
+<button id="back">▼</button>
+<button id="car">🚗 कार में बैठें</button>
 </div>
+<script type="module">
+import * as THREE from
+'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x87ceeb);
+scene.fog=new THREE.Fog(0x87ceeb,40,120);
+
+const camera=new THREE.PerspectiveCamera(
+70,innerWidth/innerHeight,0.1,300);
+
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(innerWidth,innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+document.body.appendChild(renderer.domElement);
+
+scene.add(new THREE.HemisphereLight(0xffffff,0x555555,2));
+const sun=new THREE.DirectionalLight(0xffffff,2);
+sun.position.set(10,20,10);
+scene.add(sun);
+
+const ground=new THREE.Mesh(
+new THREE.PlaneGeometry(200,200),
+new THREE.MeshStandardMaterial({color:0x398044}));
+ground.rotation.x=-Math.PI/2;
+scene.add(ground);
+
+// Roads
+function road(x,z,w,d){
+const m=new THREE.Mesh(
+new THREE.BoxGeometry(w,.08,d),
+new THREE.MeshStandardMaterial({color:0x333333}));
+m.position.set(x,.05,z);
+scene.add(m);
+}
+road(0,0,200,12);
+road(0,0,12,200);
+
+// Buildings
+for(let x=-70;x<=70;x+=20){
+for(let z=-70;z<=70;z+=25){
+if(Math.abs(x)<18||Math.abs(z)<18)continue;
+let h=8+Math.random()*15;
+let b=new THREE.Mesh(
+new THREE.BoxGeometry(9,h,10),
+new THREE.MeshStandardMaterial({
+color:new THREE.Color().setHSL(.55,.2,.35+Math.random()*.3)
+}));
+b.position.set(x,h/2,z);
+scene.add(b);
+}
+}
+
+// Player
+const player=new THREE.Group();
+const body=new THREE.Mesh(
+new THREE.BoxGeometry(1,1.5,.6),
+new THREE.MeshStandardMaterial({color:0x2255ff}));
+body.position.y=1.2;
+player.add(body);
+const head=new THREE.Mesh(
+new THREE.SphereGeometry(.38,16,16),
+new THREE.MeshStandardMaterial({color:0xffcc99}));
+head.position.y=2.2;
+player.add(head);
+scene.add(player);
+
+// Car
+const car=new THREE.Group();
+const base=new THREE.Mesh(
+new THREE.BoxGeometry(2.5,.8,4),
+new THREE.MeshStandardMaterial({color:0xe52222}));
+base.position.y=.7;
+car.add(base);
+const top=new THREE.Mesh(
+new THREE.BoxGeometry(1.8,.8,2),
+new THREE.MeshStandardMaterial({color:0x222233}));
+top.position.set(0,1.4,-.2);
+car.add(top);
+for(let x of [-1.2,1.2]){
+for(let z of [-1.2,1.2]){
+let wheel=new THREE.Mesh(
+new THREE.CylinderGeometry(.4,.4,.25,16),
+new THREE.MeshStandardMaterial({color:0x111111}));
+wheel.rotation.z=Math.PI/2;
+wheel.position.set(x,.45,z);
+car.add(wheel);
+}
+}
+car.position.set(5,0,0);
+scene.add(car);
+
+let driving=false;
+let keys={};
+let speed=0;
+
+function press(id,key){
+let b=document.getElementById(id);
+b.addEventListener('pointerdown',e=>{
+e.preventDefault();keys[key]=true;
+});
+['pointerup','pointerleave','pointercancel'].forEach(ev=>
+b.addEventListener(ev,()=>keys[key]=false));
+}
+press('forward','up');
+press('back','down');
+press('left','left');
+press('right','right');
+
+document.getElementById('car').onclick=()=>{
+if(!driving && player.position.distanceTo(car.position)<5){
+driving=true;
+document.getElementById('car').innerText='🚶 बाहर निकलें';
+}else if(driving){
+driving=false;
+player.position.copy(car.position);
+player.position.x+=3;
+document.getElementById('car').innerText='🚗 कार में बैठें';
+}
+};
+
+function animate(){
+requestAnimationFrame(animate);
+let target=driving?car:player;
+
+if(driving){
+if(keys.up)speed=Math.min(speed+.012,.35);
+else if(keys.down)speed=Math.max(speed-.015,-.15);
+else speed*=.96;
+if(keys.left)car.rotation.y+=.035;
+if(keys.right)car.rotation.y-=.035;
+car.translateZ(-speed);
+}else{
+if(keys.up)player.translateZ(-.15);
+if(keys.down)player.translateZ(.15);
+if(keys.left)player.rotation.y+=.05;
+if(keys.right)player.rotation.y-=.05;
+}
+
+let offset=new THREE.Vector3(0,5,9);
+offset.applyAxisAngle(new THREE.Vector3(0,1,0),target.rotation.y);
+camera.position.copy(target.position).add(offset);
+camera.lookAt(target.position.x,target.position.y+1,target.position.z);
+renderer.render(scene,camera);
+}
+animate();
+
+onresize=()=>{
+camera.aspect=innerWidth/innerHeight;
+camera.updateProjectionMatrix();
+renderer.setSize(innerWidth,innerHeight);
+};
+</script>
 </body>
 </html>
